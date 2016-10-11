@@ -2,19 +2,19 @@ class Graph(object):
     def __init__(self, n):
         self.n = n
         self.adj = [[] for i in range(n)]
+        self.edges = []
 
     def add_edge(self, i, j):
         self.adj[i].append(j)
         self.adj[j].append(i)
+        self.edges.append((max(i,j), min(i,j)))
 
     def show(self):
         for i in range(self.n):
             print self.adj[i]
 
 def edge_iter(g):
-    for i, lst in enumerate(g.adj):
-        for j in lst:
-            yield i, j
+    return iter(g.edges)
             
 def read(fname):
     with open(fname, "r") as f:
