@@ -7,7 +7,7 @@ class Graph(object):
     def add_edge(self, i, j):
         self.adj[i].append(j)
         self.adj[j].append(i)
-        self.edges.append((max(i,j), min(i,j)))
+        self.edges.append((min(i,j), max(i,j)))
 
     def show(self):
         for i in range(self.n):
