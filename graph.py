@@ -13,6 +13,9 @@ class Graph(object):
         for i in range(self.n):
             print self.adj[i]
 
+    def get_m(self):
+        return len(self.edges)
+
 def edge_iter(g):
     return iter(g.edges)
             
