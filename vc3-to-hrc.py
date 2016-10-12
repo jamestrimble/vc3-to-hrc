@@ -18,61 +18,105 @@ class HRC(object):
         m = g.get_m()
         n = g.n
 
-        print self.vtx_to_edges(0)
-        print self.vtx_to_edges(1)
-        print self.vtx_to_edges(2)
-        print self.vtx_to_edges(3)
+        print n
 
         for j in range(m):
             self.add_couple("r_{}^1".format(j), "r_{}^2".format(j))
             self.add_couple("r_{}^3".format(j), "r_{}^4".format(j))
+            for rsuper, hsuper in [(1,1), (2,2), (3,1), (4,2)]:
+                self.add_rpref("r_{}^{}".format(j, rsuper), "h_{}^{}".format(j, hsuper))
 
         for t in range(K):
             self.add_couple("f_{}^1".format(t), "f_{}^2".format(t))
             self.add_couple("f_{}^3".format(t), "f_{}^4".format(t))
             self.add_couple("f_{}^5".format(t), "f_{}^6".format(t))
+            for rsuper, hsuper in [(1,1), (2,2), (3,2), (4,3), (5,3), (6,1)]:
+                self.add_rpref("f_{}^{}".format(j, rsuper), "g_{}^{}".format(j, hsuper))
 
         for t in range(n-K):
             self.add_couple("y_{}^1".format(t), "y_{}^2".format(t))
             self.add_couple("y_{}^3".format(t), "y_{}^4".format(t))
             self.add_couple("y_{}^5".format(t), "y_{}^6".format(t))
+            for rsuper, hsuper in [(1,1), (2,2), (3,2), (4,3), (5,3), (6,1)]:
+                self.add_rpref("y_{}^{}".format(j, rsuper), "z_{}^{}".format(j, hsuper))
 
         for t in range(K):
             self.add_single("a_{}".format(t))
+            self.add_rpref("a_{}".format(t), "p_{}".format(t))
+            self.add_rpref("a_{}".format(t), "g_{}^1".format(t))
         for t in range(n-K):
             self.add_single("b_{}".format(t))
+            self.add_rpref("b_{}".format(t), "q_{}".format(t))
+            self.add_rpref("b_{}".format(t), "z_{}^1".format(t))
 
         for i in range(n):
-            self.add_single("x_{}".format(i))
+            # Change from model in paper: each x_i becomes a couple (x_i, x'_i)
+            self.add_couple("x_{}".format(i), "x'_{}".format(i))
 
-        # ALSO NEED:
-        # p', q', x', d (dummy hospital for each vertex)
+            for t in range(K):
+                self.add_rpref("x_{}".format(i), "p_{}".format(t))
+                self.add_rpref("x'_{}".format(i), "p'_{}".format(t))
+
+            for pos_in_edge, vtx in self.vtx_to_edges(i):
+                self.add_rpref("x_{}".format(i), "h_{}^{}".format(vtx, pos_in_edge))
+            for j in range(3):
+                self.add_rpref("x'_{}".format(i), "d_{}".format(i))
+
+            for t in range(n-K):
+                self.add_rpref("x_{}".format(i), "q_{}".format(t))
+                self.add_rpref("x'_{}".format(i), "q'_{}".format(t))
+
 
 
         for t in range(K):
-            self.add_hosp("g_{}^1".format(t))
-            self.add_hosp("g_{}^2".format(t))
-            self.add_hosp("g_{}^3".format(t))
+            for superscript in [1, 2, 3]:
+                self.add_hosp("g_{}^{}".format(t, superscript))
+            self.add_hpref("g_{}^1".format(t), "a_{}".format(t))
+            for hsuper, rsuper in [(1,1), (1,6), (2,3), (2,2), (3,5), (3,4)]:
+                self.add_hpref("h_{}^{}".format(t, hsuper), "r_{}^{}".format(t, rsuper))
 
         for j in range(m):
             self.add_hosp("h_{}^1".format(j))
             self.add_hosp("h_{}^2".format(j))
+            self.add_hpref("h_{}^1".format(j), "r_{}^1".format(j))
+            self.add_hpref("h_{}^1".format(j), "x_{}".format(self.g.edges[m][0]))
+            self.add_hpref("h_{}^1".format(j), "r_{}^3".format(j))
+            self.add_hpref("h_{}^2".format(j), "r_{}^4".format(j))
+            self.add_hpref("h_{}^2".format(j), "x_{}".format(self.g.edges[m][1]))
+            self.add_hpref("h_{}^2".format(j), "r_{}^2".format(j))
 
         for t in range(K):
-            self.add_hosp("p_{}^1".format(t))
-        for t in range(n-K):
-            self.add_hosp("q_{}^1".format(t))
+            self.add_hosp("p_{}".format(t))
+            self.add_hosp("p'_{}".format(t))
+            for j in range(n):
+                self.add_hpref("p_{}".format(t), "x_{}".format(j))
+                self.add_hpref("p'_{}".format(t), "x'_{}".format(n-1-j))
+            self.add_hpref("p_{}".format(t), "a_{}".format(j))
 
         for t in range(n-K):
-            self.add_hosp("z_{}^1".format(t))
-            self.add_hosp("z_{}^2".format(t))
-            self.add_hosp("z_{}^3".format(t))
+            self.add_hosp("q_{}".format(t))
+            self.add_hosp("q'_{}".format(t))
+            for j in range(n):
+                self.add_hpref("q_{}".format(t), "x_{}".format(j))
+                self.add_hpref("q'_{}".format(t), "x'_{}".format(n-1-j))
+            self.add_hpref("q_{}".format(t), "b_{}".format(j))
+
+        for t in range(n-K):
+            for superscript in [1, 2, 3]:
+                self.add_hosp("z_{}^{}".format(t, superscript))
+            self.add_hpref("z_{}^1".format(t), "b_{}".format(t))
+            for hsuper, rsuper in [(1,1), (1,6), (2,3), (2,2), (3,5), (3,4)]:
+                self.add_hpref("z_{}^{}".format(t, hsuper), "y_{}^{}".format(t, rsuper))
+
+        for i in range(n):
+            self.add_hosp("d_{}".format(i), "x'_{}".format(i))
+            
 
     def vtx_to_edges(self, i):
         retval = []
         for j, e in enumerate(self.g.edges):
-            if   e[0] == i: retval.append((0, j))
-            elif e[1] == i: retval.append((1, j))
+            if   e[0] == i: retval.append((1, j))
+            elif e[1] == i: retval.append((2, j))
         return retval
 
     def add_couple(self, name1, name2):
