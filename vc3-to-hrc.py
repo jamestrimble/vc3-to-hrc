@@ -169,7 +169,7 @@ class HRC(object):
             hname = self.idx_to_hosp[i]
             sys.stdout.write("{}\t{}".format(i, self.hosp_caps[hname]))
             for rname in self.hpref[hname]:
-                sys.stdout.write("\t".format(res_to_idx[rname]))
+                sys.stdout.write("\t{}".format(res_to_idx[rname]))
             sys.stdout.write(os.linesep)
 
     def show_debug(self):
