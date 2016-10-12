@@ -183,7 +183,7 @@ class HRC(object):
             sys.stdout.write(os.linesep)
         for i in range(self.hosp_idx):
             hname = self.idx_to_hosp[i]
-            sys.stdout.write(hname + ": ")
+            sys.stdout.write("{}={}: ".format(i, hname))
             sys.stdout.write("{}:".format(self.hosp_caps[hname]))
             for rname in self.hpref[hname]:
                 sys.stdout.write(" " + rname)
