@@ -152,7 +152,7 @@ class HRC(object):
         print self.num_couples
         print sum(self.hosp_caps.values())
         for i in range(5):
-            print
+            print "-"
 
     def show(self):
         self.show_instance_stats()
