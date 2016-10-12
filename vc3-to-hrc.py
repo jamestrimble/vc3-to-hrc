@@ -39,15 +39,6 @@ class HRC(object):
             for rsuper, hsuper in [(1,1), (2,2), (3,2), (4,3), (5,3), (6,1)]:
                 self.add_rpref("y_{}^{}".format(t, rsuper), "z_{}^{}".format(t, hsuper))
 
-        for t in range(K):
-            self.add_single("a_{}".format(t))
-            self.add_rpref("a_{}".format(t), "p_{}".format(t))
-            self.add_rpref("a_{}".format(t), "g_{}^1".format(t))
-        for t in range(n-K):
-            self.add_single("b_{}".format(t))
-            self.add_rpref("b_{}".format(t), "q_{}".format(t))
-            self.add_rpref("b_{}".format(t), "z_{}^1".format(t))
-
         for i in range(n):
             # Change from model in paper: each x_i becomes a couple (x_i, x'_i)
             self.add_couple("x_{}".format(i), "x'_{}".format(i))
@@ -64,6 +55,15 @@ class HRC(object):
             for t in range(n-K):
                 self.add_rpref("x_{}".format(i), "q_{}".format(t))
                 self.add_rpref("x'_{}".format(i), "q'_{}".format(t))
+
+        for t in range(K):
+            self.add_single("a_{}".format(t))
+            self.add_rpref("a_{}".format(t), "p_{}".format(t))
+            self.add_rpref("a_{}".format(t), "g_{}^1".format(t))
+        for t in range(n-K):
+            self.add_single("b_{}".format(t))
+            self.add_rpref("b_{}".format(t), "q_{}".format(t))
+            self.add_rpref("b_{}".format(t), "z_{}^1".format(t))
 
 
 
@@ -120,6 +120,7 @@ class HRC(object):
         return retval
 
     def add_couple(self, name1, name2):
+        assert self.num_couples*2==len(self.rpref), "Can't add more couples after adding a single"
         self.idx_to_res[self.res_idx] = name1
         self.idx_to_res[self.res_idx + 1] = name2
         self.res_idx += 2
