@@ -2,3 +2,4 @@
 *.dzn
 transformed/*
 tmp/
+generated_instances/
