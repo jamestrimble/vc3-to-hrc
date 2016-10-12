@@ -1,4 +1,5 @@
 import os
+import pprint
 import sys
 
 import graph
@@ -18,8 +19,6 @@ class HRC(object):
         m = g.get_m()
         n = g.n
 
-        print n
-
         for j in range(m):
             self.add_couple("r_{}^1".format(j), "r_{}^2".format(j))
             self.add_couple("r_{}^3".format(j), "r_{}^4".format(j))
@@ -31,14 +30,14 @@ class HRC(object):
             self.add_couple("f_{}^3".format(t), "f_{}^4".format(t))
             self.add_couple("f_{}^5".format(t), "f_{}^6".format(t))
             for rsuper, hsuper in [(1,1), (2,2), (3,2), (4,3), (5,3), (6,1)]:
-                self.add_rpref("f_{}^{}".format(j, rsuper), "g_{}^{}".format(j, hsuper))
+                self.add_rpref("f_{}^{}".format(t, rsuper), "g_{}^{}".format(t, hsuper))
 
         for t in range(n-K):
             self.add_couple("y_{}^1".format(t), "y_{}^2".format(t))
             self.add_couple("y_{}^3".format(t), "y_{}^4".format(t))
             self.add_couple("y_{}^5".format(t), "y_{}^6".format(t))
             for rsuper, hsuper in [(1,1), (2,2), (3,2), (4,3), (5,3), (6,1)]:
-                self.add_rpref("y_{}^{}".format(j, rsuper), "z_{}^{}".format(j, hsuper))
+                self.add_rpref("y_{}^{}".format(t, rsuper), "z_{}^{}".format(t, hsuper))
 
         for t in range(K):
             self.add_single("a_{}".format(t))
@@ -73,16 +72,16 @@ class HRC(object):
                 self.add_hosp("g_{}^{}".format(t, superscript))
             self.add_hpref("g_{}^1".format(t), "a_{}".format(t))
             for hsuper, rsuper in [(1,1), (1,6), (2,3), (2,2), (3,5), (3,4)]:
-                self.add_hpref("h_{}^{}".format(t, hsuper), "r_{}^{}".format(t, rsuper))
+                self.add_hpref("g_{}^{}".format(t, hsuper), "f_{}^{}".format(t, rsuper))
 
         for j in range(m):
             self.add_hosp("h_{}^1".format(j))
             self.add_hosp("h_{}^2".format(j))
             self.add_hpref("h_{}^1".format(j), "r_{}^1".format(j))
-            self.add_hpref("h_{}^1".format(j), "x_{}".format(self.g.edges[m][0]))
+            self.add_hpref("h_{}^1".format(j), "x_{}".format(self.g.edges[j][0]))
             self.add_hpref("h_{}^1".format(j), "r_{}^3".format(j))
             self.add_hpref("h_{}^2".format(j), "r_{}^4".format(j))
-            self.add_hpref("h_{}^2".format(j), "x_{}".format(self.g.edges[m][1]))
+            self.add_hpref("h_{}^2".format(j), "x_{}".format(self.g.edges[j][1]))
             self.add_hpref("h_{}^2".format(j), "r_{}^2".format(j))
 
         for t in range(K):
@@ -91,7 +90,7 @@ class HRC(object):
             for j in range(n):
                 self.add_hpref("p_{}".format(t), "x_{}".format(j))
                 self.add_hpref("p'_{}".format(t), "x'_{}".format(n-1-j))
-            self.add_hpref("p_{}".format(t), "a_{}".format(j))
+            self.add_hpref("p_{}".format(t), "a_{}".format(t))
 
         for t in range(n-K):
             self.add_hosp("q_{}".format(t))
@@ -99,7 +98,7 @@ class HRC(object):
             for j in range(n):
                 self.add_hpref("q_{}".format(t), "x_{}".format(j))
                 self.add_hpref("q'_{}".format(t), "x'_{}".format(n-1-j))
-            self.add_hpref("q_{}".format(t), "b_{}".format(j))
+            self.add_hpref("q_{}".format(t), "b_{}".format(t))
 
         for t in range(n-K):
             for superscript in [1, 2, 3]:
@@ -109,7 +108,8 @@ class HRC(object):
                 self.add_hpref("z_{}^{}".format(t, hsuper), "y_{}^{}".format(t, rsuper))
 
         for i in range(n):
-            self.add_hosp("d_{}".format(i), "x'_{}".format(i))
+            self.add_hosp("d_{}".format(i))
+            self.add_hpref("d_{}".format(i), "x'_{}".format(i))
             
 
     def vtx_to_edges(self, i):
@@ -144,27 +144,50 @@ class HRC(object):
     def add_hpref(self, hname, rname):
         self.hpref[hname].append(rname)
 
-    def show(self):
-        pass
-
-    def show_debug(self):
+    def show_instance_stats(self):
+        """Prints the first few lines of the HRC instance"""
         print self.res_idx
         print self.hosp_idx
         print self.num_couples
         print sum(self.hosp_caps.values())
         for i in range(5):
             print
+
+    def show(self):
+        self.show_instance_stats()
+
+        res_to_idx = {name: idx for idx, name in self.idx_to_res.iteritems()}
+        hosp_to_idx = {name: idx for idx, name in self.idx_to_hosp.iteritems()}
+
+        for i in range(self.res_idx):
+            sys.stdout.write(str(i))
+            rname = self.idx_to_res[i]
+            for hname in self.rpref[rname]:
+                sys.stdout.write("\t{}".format(hosp_to_idx[hname]))
+            sys.stdout.write(os.linesep)
+        for i in range(self.hosp_idx):
+            hname = self.idx_to_hosp[i]
+            sys.stdout.write("{}\t{}".format(i, self.hosp_caps[hname]))
+            for rname in self.hpref[hname]:
+                sys.stdout.write("\t".format(res_to_idx[rname]))
+            sys.stdout.write(os.linesep)
+
+    def show_debug(self):
+        self.show_instance_stats()
         for i in range(self.res_idx):
             rname = self.idx_to_res[i]
             sys.stdout.write(rname + ":")
             for hname in self.rpref[rname]:
                 sys.stdout.write(" " + hname)
+                assert hname in self.hpref
             sys.stdout.write(os.linesep)
         for i in range(self.hosp_idx):
             hname = self.idx_to_hosp[i]
-            sys.stdout.write(hname + ":")
+            sys.stdout.write(hname + ": ")
+            sys.stdout.write("{}:".format(self.hosp_caps[hname]))
             for rname in self.hpref[hname]:
                 sys.stdout.write(" " + rname)
+                assert rname in self.rpref
             sys.stdout.write(os.linesep)
 
 if __name__=="__main__":
@@ -172,5 +195,7 @@ if __name__=="__main__":
     K = int(sys.argv[2])
     g = graph.read(fname)
     hrc = HRC(g, K)
-    hrc.show()
-    hrc.show_debug()
+    if len(sys.argv) > 3:
+        hrc.show_debug()
+    else:
+        hrc.show()
